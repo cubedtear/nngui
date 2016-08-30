@@ -17,7 +17,7 @@
 #include <windows.h>
 #endif
 #include <iostream>
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 using std::cout;
 using std::cerr;
@@ -75,7 +75,7 @@ int main(int /* argc */, char ** /* argv */)
       return 1;
     }
 
-    auto context = SDL_GL_CreateContext(window);
+    SDL_GL_CreateContext(window);
 
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED );
 

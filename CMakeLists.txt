@@ -84,15 +84,14 @@ elseif (APPLE)
   find_library(corevideo_library CoreVideo)
   find_library(iokit_library IOKit)
   list(APPEND PICOGUI_EXTRA_LIBS ${cocoa_library} ${opengl_library} ${corevideo_library} ${iokit_library})
-  list(APPEND PICOGUI_EXTRA_SOURCE src/darwin.mm)
+  list(APPEND PICOGUI_EXTRA_SOURCE darwin.mm)
 elseif(CMAKE_SYSTEM MATCHES "Linux")
   list(APPEND PICOGUI_EXTRA_LIBS GL Xxf86vm Xrandr Xinerama Xcursor Xi X11 pthread dl rt)
 endif()
 
-include_directories(ext src ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
-
-# Needed to generated files
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}
+                    ${CMAKE_CURRENT_BINARY_DIR}
+                    ${SDL2_INCLUDE_DIR})
 
 message(${PICOGUI_EXTRA_LIBS})
 
@@ -100,13 +99,6 @@ set(PICOGUI_BASIC_SOURCE "")
 list(APPEND PICOGUI_BASIC_SOURCE
      picogui.cpp
      picogui_resources.cpp)
-
-# Quench warnings while compiling NanoVG
-if (CMAKE_COMPILER_IS_GNUCC)
-  set_source_files_properties(ext/nanovg/src/nanovg.c PROPERTIES COMPILE_FLAGS -Wno-unused-result)
-elseif(MSVC)
-  set_source_files_properties(ext/nanovg/src/nanovg.c PROPERTIES COMPILE_FLAGS "/wd4005 /wd4456 /wd4457")
-endif()
 
 # Build example application if desired
 if(PICOGUI_BUILD_EXAMPLESDL)
