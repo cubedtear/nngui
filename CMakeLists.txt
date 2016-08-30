@@ -98,9 +98,8 @@ message(${PICOGUI_EXTRA_LIBS})
 
 set(PICOGUI_BASIC_SOURCE "")
 list(APPEND PICOGUI_BASIC_SOURCE
-     src/picogui.cpp
-     src/picogui_resources.cpp
-     ext/nanovg/nanovg.c)
+     picogui.cpp
+     picogui_resources.cpp)
 
 # Quench warnings while compiling NanoVG
 if (CMAKE_COMPILER_IS_GNUCC)
@@ -111,8 +110,8 @@ endif()
 
 # Build example application if desired
 if(PICOGUI_BUILD_EXAMPLESDL)
-  add_executable(example1 ${PICOGUI_EXTRA_SOURCE} ${PICOGUI_BASIC_SOURCE} examples/example1.cpp )
-  add_executable(example2 ${PICOGUI_EXTRA_SOURCE} ${PICOGUI_BASIC_SOURCE} examples/example2.cpp )
+  add_executable(example1 ${PICOGUI_EXTRA_SOURCE} ${PICOGUI_BASIC_SOURCE} picogui_demo1.cpp )
+  add_executable(example2 ${PICOGUI_EXTRA_SOURCE} ${PICOGUI_BASIC_SOURCE} picogui_demo2.cpp )
 
   target_link_libraries(example1 ${PICOGUI_EXTRA_LIBS})
   target_link_libraries(example2 ${PICOGUI_EXTRA_LIBS})

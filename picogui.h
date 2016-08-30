@@ -35,17 +35,6 @@ struct SDL_Window;
 #define NAMESPACE_END(name) }
 #endif
 
-/* Force usage of discrete GPU on laptops (macro must be invoked in main application) */
-#if defined(_WIN32)
-#define PICOGUI_FORCE_DISCRETE_GPU() \
-    extern "C" { \
-        __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1; \
-        __declspec(dllexport) int NvOptimusEnablement = 1; \
-    }
-#else
-#define PICOGUI_FORCE_DISCRETE_GPU()
-#endif
-
 #if defined(_WIN32)
     #if defined(PICOGUI_BUILD)
     /* Quench a few warnings on when compiling PICOGUI on Windows */
@@ -59,13 +48,6 @@ struct SDL_Window;
 struct NVGcontext;
 struct NVGcolor;
 struct NVGglyphPosition;
-
-// Define command key for windows/mac/linux
-#ifdef __APPLE__
-#define SYSTEM_COMMAND_MOD GLFW_MOD_SUPER
-#else
-#define SYSTEM_COMMAND_MOD GLFW_MOD_CONTROL
-#endif
 
 NAMESPACE_BEGIN(picogui)
 
@@ -2630,6 +2612,6 @@ public:
 
 NAMESPACE_END(detail)
 
-NAMESPACE_END(nanogui)
+NAMESPACE_END(picogui)
 
 #endif
