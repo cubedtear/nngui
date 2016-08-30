@@ -6,14 +6,20 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
     set(CMAKE_CXX_FLAGS "-std=c++11")
 endif()
 
-option(PICOGUI_BUILD_EXAMPLE "Build PicoGUI example application?" ON)
-option(PICOGUI_BUILD_EXAMPLESDL  "Build PicoGUI examples with SDL2?" ON)
+option(PICOGUI_SDL_ENABLED "Build PicoGUI with SDL?" ON)
+
+if (PICOGUI_SDL_ENABLED)
+    add_definitions( -DPICOGUI_SDL )
+    option(PICOGUI_BUILD_EXAMPLESDL  "Build PicoGUI examples with SDL2?" ON)
+else()
+    option(PICOGUI_BUILD_EXAMPLE "Build PicoGUI examples with openGL?" ON)
+endif()
 
 # Required libraries for linking against picogui (all targets)
 set(PICOGUI_EXTRA_LIBS "")
 
 # Platform-dependent files for libpicogui
-set(LIBPICOGUI_EXTRA_SOURCE "")
+set(PICOGUI_EXTRA_SOURCE "")
 
 include(CheckCXXCompilerFlag)
 
@@ -59,7 +65,6 @@ endif()
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU")
   # Enable C++11 mode on GCC / Clang
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-  add_definitions( -DEIGEN_DONT_ALIGN )
 endif()
 
 if(PICOGUI_BUILD_EXAMPLESDL)
@@ -79,20 +84,20 @@ elseif (APPLE)
   find_library(corevideo_library CoreVideo)
   find_library(iokit_library IOKit)
   list(APPEND PICOGUI_EXTRA_LIBS ${cocoa_library} ${opengl_library} ${corevideo_library} ${iokit_library})
-  list(APPEND LIBPICOGUI_EXTRA_SOURCE src/darwin.mm)
+  list(APPEND PICOGUI_EXTRA_SOURCE src/darwin.mm)
 elseif(CMAKE_SYSTEM MATCHES "Linux")
   list(APPEND PICOGUI_EXTRA_LIBS GL Xxf86vm Xrandr Xinerama Xcursor Xi X11 pthread dl rt)
 endif()
 
-include_directories(ext ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
+include_directories(ext src ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
 # Needed to generated files
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 message(${PICOGUI_EXTRA_LIBS})
 
-set(LIBPICOGUI_BASIC_SOURCE "")
-list(APPEND LIBPICOGUI_BASIC_SOURCE
+set(PICOGUI_BASIC_SOURCE "")
+list(APPEND PICOGUI_BASIC_SOURCE
      src/picogui.cpp
      src/picogui_resources.cpp
      ext/nanovg/nanovg.c)
@@ -106,8 +111,8 @@ endif()
 
 # Build example application if desired
 if(PICOGUI_BUILD_EXAMPLESDL)
-  add_executable(example1 ${LIBPICOGUI_EXTRA_SOURCE} ${LIBPICOGUI_BASIC_SOURCE} src/example1.cpp )
-  add_executable(example2 ${LIBPICOGUI_EXTRA_SOURCE} ${LIBPICOGUI_BASIC_SOURCE} src/example2.cpp )
+  add_executable(example1 ${PICOGUI_EXTRA_SOURCE} ${PICOGUI_BASIC_SOURCE} examples/example1.cpp )
+  add_executable(example2 ${PICOGUI_EXTRA_SOURCE} ${PICOGUI_BASIC_SOURCE} examples/example2.cpp )
 
   target_link_libraries(example1 ${PICOGUI_EXTRA_LIBS})
   target_link_libraries(example2 ${PICOGUI_EXTRA_LIBS})

@@ -2,15 +2,17 @@
     src/popup.cpp -- Simple popup widget which is attached to another given
     window (can be nested)
 
-    NanoGUI was developed by Wenzel Jakob <wenzel@inf.ethz.ch>.
+    Original NanoGUI was developed by Wenzel Jakob <wenzel@inf.ethz.ch>.
     The widget drawing code is based on the NanoVG demo application
     by Mikko Mononen.
+
+    PicoGUI was improved by Dalerank <dalerankn8@gmail.com>
 
     All rights reserved. Use of this source code is governed by a
     BSD-style license that can be found in the LICENSE.txt file.
 */
 
-#include <include/picogui.h>
+#include <picogui.h>
 #include <SDL2/SDL.h>
 #include <assert.h>
 #include <regex>
