@@ -24,8 +24,12 @@
 #include <assert.h>
 #include <istream>
 
+#ifdef PICOGUI_SDL
 union SDL_Event;
 struct SDL_Window;
+#elif defined PICOGUI_GLFW
+struct GLFWwindow;
+#endif
 
 #if !defined(NAMESPACE_BEGIN)
 #define NAMESPACE_BEGIN(name) namespace name {
@@ -2293,8 +2297,13 @@ class Screen : public Widget
     friend class Widget;
     friend class Window;
 public:
+#ifdef PICOGUI_SDL
+    typedef SDL_Window* ParentWindowPtr;
+#elif defined PICOGUI_GLFW
+    typedef GLFWwindow* ParentWindowPtr;
+#endif
     /// Create a new screen
-    Screen( SDL_Window* window, const Vector2i &size, const std::string &caption,
+    Screen(ParentWindowPtr window, const Vector2i &size, const std::string &caption,
             bool resizable = true, bool fullscreen = false);
 
     /// Release all resources
@@ -2321,7 +2330,9 @@ public:
     /// Draw the Screen contents
     virtual void drawAll();
 
+#ifdef PICOGUI_SDL
     virtual void onEvent(SDL_Event& event);
+#endif
 
     /// Draw the window contents -- put your OpenGL draw calls here
     virtual void drawContents() { /* To be overridden */ }
@@ -2342,7 +2353,7 @@ public:
     Vector2i mousePos() const { return mMousePos; }
 
     /// Return a pointer to the underlying GLFW window data structure
-    SDL_Window *window() { return _window; }
+    ParentWindowPtr window() { return _window; }
 
     /// Return a pointer to the underlying nanoVG draw context
     NVGcontext *nvgContext() { return mNVGContext; }
@@ -2351,7 +2362,7 @@ public:
     void performLayout();
 public:
     /// Initialize the \ref Screen
-    void initialize(SDL_Window *window);
+    void initialize(ParentWindowPtr window);
 
     /* Event handlers */
     bool cursorPosCallbackEvent(double x, double y);
@@ -2372,7 +2383,7 @@ public:
     void performLayout(NVGcontext *ctx);
 
 protected:
-    SDL_Window *_window;
+    ParentWindowPtr _window;
     NVGcontext *mNVGContext;
     std::vector<Widget *> mFocusPath;
     Vector2i mFBSize;

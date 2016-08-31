@@ -13,14 +13,24 @@
 */
 
 #include <picogui.h>
-#include <SDL.h>
 #include <assert.h>
 #include <regex>
 #include <iostream>
 #include <numeric>
 #include <thread>
 
-#include <SDL_opengl.h>
+#ifdef PICOGUI_SDL
+    #include <SDL.h>
+    #include <SDL_opengl.h>
+#elif defined PICOGUI_GLFW
+    #if defined(__APPLE__)
+        #define GLFW_INCLUDE_GLCOREARB
+    #else
+        #define GL_GLEXT_PROTOTYPES
+    #endif
+    #include <GLFW/glfw3.h>
+    #include <GL/glext.h>
+#endif
 
 #ifdef _WIN32
     #include <windows.h>
@@ -37,6 +47,78 @@
 #pragma warning(push)
 #pragma warning(disable: 4201)  // nonstandard extension used : nameless struct/union
 #endif
+
+#ifdef __APPLE__
+#define SYSTEM_COMMAND_MOD GLFW_MOD_SUPER
+#else
+#define SYSTEM_COMMAND_MOD GLFW_MOD_CONTROL
+#endif
+
+#ifdef PICOGUI_GLFW
+  #ifdef __APPLE__
+  #define SYSTEM_COMMAND_MOD GLFW_MOD_SUPER
+  #else
+  #define SYSTEM_COMMAND_MOD GLFW_MOD_CONTROL
+  #endif
+
+  #define MOUSE_BUTTON_LEFT GLFW_MOUSE_BUTTON_1
+  #define MOUSE_BUTTON_PRESS GLFW_PRESS
+  #define MOUSE_BUTTON_RELEASE GLFW_RELEASE
+  #define KEYBOARD_KEY_DOWN GLFW_PRESS
+  #define KEYBOARD_KEY_LEFT GLFW_KEY_LEFT
+  #define KEYBOARD_KEY_LSHIFT GLFW_MOD_SHIFT
+  #define KEYBOARD_KEY_RIGHT GLFW_KEY_RIGHT
+  #define KEYBOARD_KEY_HOME GLFW_KEY_HOME
+  #define KEYBOARD_KEY_END GLFW_KEY_END
+  #define KEYBOARD_KEY_BACKSPACE GLFW_KEY_BACKSPACE
+  #define KEYBOARD_KEY_DELETE GLFW_KEY_DELETE
+  #define KEYBOARD_KEY_RETURN GLFW_KEY_ENTER
+  #define KEYBOARD_KEY_RCTRL SYSTEM_COMMAND_MOD
+  #define KEYBOARD_KEY_A GLFW_KEY_A
+  #define KEYBOARD_KEY_C GLFW_KEY_C
+  #define KEYBOARD_KEY_V GLFW_KEY_V
+  #define KEYBOARD_KEY_X GLFW_KEY_X
+
+  #define __getTime glfwGetTime
+  #define __showWindow glfwShowWindow
+  #define __hideWindow glfwHideWindow
+  #define __setWindowTitle glfwSetWindowTitle
+  #define __setWindowSize glfwSetWindowSize
+  #define __getWindowSize glfwGetWindowSize
+  #define __getFramebufferSize glfwGetFramebufferSize
+#elif PICOGUI_SDL
+  #ifdef __APPLE__
+  #define SYSTEM_COMMAND_MOD SDLK_APPLICATION
+  #else
+  #define SYSTEM_COMMAND_MOD SDLK_RCTRL
+  #endif
+
+  #define MOUSE_BUTTON_LEFT SDL_BUTTON_LEFT
+  #define MOUSE_BUTTON_PRESS SDL_MOUSEBUTTONDOWN
+  #define MOUSE_BUTTON_RELEASE SDL_MOUSEBUTTONUP
+  #define KEYBOARD_KEY_DOWN SDL_KEYDOWN
+  #define KEYBOARD_KEY_LEFT SDLK_LEFT
+  #define KEYBOARD_KEY_LSHIFT SDLK_LSHIFT
+  #define KEYBOARD_KEY_RIGHT SDLK_RIGHT
+  #define KEYBOARD_KEY_HOME SDLK_HOME
+  #define KEYBOARD_KEY_END SDLK_END
+  #define KEYBOARD_KEY_BACKSPACE SDLK_BACKSPACE
+  #define KEYBOARD_KEY_DELETE SDLK_DELETE
+  #define KEYBOARD_KEY_RETURN SDLK_RETURN
+  #define KEYBOARD_KEY_RCTRL SYSTEM_COMMAND_MOD
+  #define KEYBOARD_KEY_A SDLK_a
+  #define KEYBOARD_KEY_C SDLK_c
+  #define KEYBOARD_KEY_V SDLK_v
+  #define KEYBOARD_KEY_X SDLK_x
+  #define __getTime SDL_GetTicks
+  #define __showWindow SDL_ShowWindow
+  #define __hideWindow SDL_HideWindow
+  #define __setWindowTitle SDL_SetWindowTitle
+  #define __setWindowSize SDL_SetWindowSize
+  #define __getWindowSize SDL_GetWindowSize
+  #define __getFramebufferSize SDL_GetWindowSize
+#endif
+
 typedef struct NVGcontext NVGcontext;
 
 struct NVGcolor {
@@ -337,6 +419,7 @@ PFNGLUNIFORM2FVPROC glUniform2fv;
 
 glhelper& glh();*/
 
+#ifdef PICOGUI_SDL
 #ifndef GL_GLEXT_PROTOTYPES
 #ifdef WIN32
   PFNGLACTIVETEXTUREPROC glActiveTexture;
@@ -420,6 +503,7 @@ glhelper& glh();*/
   PFNGLBINDBUFFERRANGEPROC glBindBufferRange;
   PFNGLSTENCILOPSEPARATEPROC glStencilOpSeparate;
   PFNGLUNIFORM2FVPROC glUniform2fv;
+#endif
 #endif
 
 NAMESPACE_BEGIN(picogui)
@@ -610,7 +694,7 @@ bool Button::mouseButtonEvent(const Vector2i &p, int button, bool down, int modi
        button causes the parent window to be destructed */
     ref<Button> self = this;
 
-    if (button == SDL_BUTTON_LEFT && mEnabled) {
+    if (button == MOUSE_BUTTON_LEFT && mEnabled) {
         bool pushedBackup = mPushed;
         if (down) {
             if (mFlags & RadioButton) {
@@ -848,7 +932,7 @@ bool CheckBox::mouseButtonEvent(const Vector2i &p, int button, bool down,
     if (!mEnabled)
         return false;
 
-    if (button == SDL_BUTTON_LEFT )
+    if (button == MOUSE_BUTTON_LEFT )
     {
         if (down)
         {
@@ -1087,7 +1171,7 @@ void Window::center() {
 
 bool Window::mouseDragEvent(const Vector2i &, const Vector2i &rel,
                             int button, int /* modifiers */) {
-    if (mDrag && (button & (1 << SDL_BUTTON_LEFT)) != 0) {
+    if (mDrag && (button & (1 << MOUSE_BUTTON_LEFT)) != 0) {
         mPos += rel;
         mPos = mPos.cwiseMax(Vector2i::Zero());
         mPos = mPos.cwiseMin(parent()->size() - mSize);
@@ -1099,7 +1183,7 @@ bool Window::mouseDragEvent(const Vector2i &, const Vector2i &rel,
 bool Window::mouseButtonEvent(const Vector2i &p, int button, bool down, int modifiers) {
     if (Widget::mouseButtonEvent(p, button, down, modifiers))
         return true;
-    if (button == SDL_BUTTON_LEFT)
+    if (button == MOUSE_BUTTON_LEFT)
     {
         mDrag = down && (p.y() - mPos.y()) < mTheme->mWindowHeaderHeight;
         return true;
@@ -1179,7 +1263,7 @@ bool Widget::mouseButtonEvent(const Vector2i &p, int button, bool down, int modi
             child->mouseButtonEvent(p - mPos, button, down, modifiers))
             return true;
     }
-    if (button == SDL_BUTTON_LEFT && down && !mFocused)
+    if (button == MOUSE_BUTTON_LEFT && down && !mFocused)
         requestFocus();
     return false;
 }
@@ -2740,14 +2824,14 @@ bool TextBox::mouseButtonEvent(const Vector2i &p, int button, bool down,
 {
     Widget::mouseButtonEvent(p, button, down, modifiers);
 
-    if (mEditable && focused() && button == SDL_BUTTON_LEFT)
+    if (mEditable && focused() && button == MOUSE_BUTTON_LEFT)
     {
         if (down)
         {
             mMouseDownPos = p;
             mMouseDownModifier = modifiers;
 
-            double time = SDL_GetTicks();
+            double time = __getTime();
             if (time - mLastClick < 0.25) {
                 /* Double-click: select all text */
                 mSelectionPos = 0;
@@ -2825,11 +2909,11 @@ bool TextBox::focusEvent(bool focused) {
 bool TextBox::keyboardEvent(int key, int /* scancode */, int action, int modifiers)
 {
     if (mEditable && focused()) {
-        if (action == SDL_KEYDOWN /*|| action == GLFW_REPEAT*/)
+        if (action == KEYBOARD_KEY_DOWN /*|| action == GLFW_REPEAT*/)
         {
-            if (key == SDLK_LEFT )
+            if (key == KEYBOARD_KEY_LEFT )
             {
-                if (modifiers == SDLK_LSHIFT)
+                if (modifiers == KEYBOARD_KEY_LSHIFT)
                 {
                     if (mSelectionPos == -1)
                         mSelectionPos = mCursorPos;
@@ -2839,8 +2923,8 @@ bool TextBox::keyboardEvent(int key, int /* scancode */, int action, int modifie
 
                 if (mCursorPos > 0)
                     mCursorPos--;
-            } else if (key == SDLK_RIGHT) {
-                if (modifiers == SDLK_LSHIFT) {
+            } else if (key == KEYBOARD_KEY_RIGHT) {
+                if (modifiers == KEYBOARD_KEY_LSHIFT) {
                     if (mSelectionPos == -1)
                         mSelectionPos = mCursorPos;
                 } else {
@@ -2849,8 +2933,8 @@ bool TextBox::keyboardEvent(int key, int /* scancode */, int action, int modifie
 
                 if (mCursorPos < (int) mValueTemp.length())
                     mCursorPos++;
-            } else if (key == SDLK_HOME) {
-                if (modifiers == SDLK_LSHIFT) {
+            } else if (key == KEYBOARD_KEY_HOME) {
+                if (modifiers == KEYBOARD_KEY_LSHIFT) {
                     if (mSelectionPos == -1)
                         mSelectionPos = mCursorPos;
                 } else {
@@ -2858,8 +2942,8 @@ bool TextBox::keyboardEvent(int key, int /* scancode */, int action, int modifie
                 }
 
                 mCursorPos = 0;
-            } else if (key == SDLK_END) {
-                if (modifiers == SDLK_LSHIFT) {
+            } else if (key == KEYBOARD_KEY_END) {
+                if (modifiers == KEYBOARD_KEY_LSHIFT) {
                     if (mSelectionPos == -1)
                         mSelectionPos = mCursorPos;
                 } else {
@@ -2867,39 +2951,39 @@ bool TextBox::keyboardEvent(int key, int /* scancode */, int action, int modifie
                 }
 
                 mCursorPos = (int) mValueTemp.size();
-            } else if (key == SDLK_BACKSPACE) {
+            } else if (key == KEYBOARD_KEY_BACKSPACE) {
                 if (!deleteSelection()) {
                     if (mCursorPos > 0) {
                         mValueTemp.erase(mValueTemp.begin() + mCursorPos - 1);
                         mCursorPos--;
                     }
                 }
-            } else if (key == SDLK_DELETE) {
+            } else if (key == KEYBOARD_KEY_DELETE) {
                 if (!deleteSelection()) {
                     if (mCursorPos < (int) mValueTemp.length())
                         mValueTemp.erase(mValueTemp.begin() + mCursorPos);
                 }
             }
-            else if (key == SDLK_RETURN)
+            else if (key == KEYBOARD_KEY_RETURN)
             {
                 if (!mCommitted)
                     focusEvent(false);
             }
-            else if (key == SDLK_a && modifiers == SDLK_RCTRL)
+            else if (key == KEYBOARD_KEY_A && modifiers == KEYBOARD_KEY_RCTRL)
             {
                 mCursorPos = (int) mValueTemp.length();
                 mSelectionPos = 0;
             }
-            else if (key == SDLK_x && modifiers == SDLK_RCTRL)
+            else if (key == KEYBOARD_KEY_X && modifiers == KEYBOARD_KEY_RCTRL)
             {
                 copySelection();
                 deleteSelection();
             }
-            else if (key == SDLK_c && modifiers == SDLK_RCTRL)
+            else if (key == KEYBOARD_KEY_C && modifiers == KEYBOARD_KEY_RCTRL)
             {
                 copySelection();
             }
-            else if (key == SDLK_v && modifiers == SDLK_RCTRL)
+            else if (key == KEYBOARD_KEY_V && modifiers == KEYBOARD_KEY_RCTRL)
             {
                 deleteSelection();
                 pasteFromClipboard();
@@ -2942,15 +3026,19 @@ bool TextBox::checkFormat(const std::string &input, const std::string &format) {
 bool TextBox::copySelection()
 {
     if (mSelectionPos > -1) {
-        //Screen *sc = dynamic_cast<Screen *>(this->window()->parent());
 
         int begin = mCursorPos;
         int end = mSelectionPos;
 
         if (begin > end)
             std::swap(begin, end);
-
+#ifdef PICOGUI_GLFW
+        Screen *sc = dynamic_cast<Screen *>(this->window()->parent());
+        glfwSetClipboardString(sc->window(),
+                               mValueTemp.substr(begin, end).c_str());
+#elif defined PICOGUI_SDL
         SDL_SetClipboardText( mValueTemp.substr(begin, end).c_str());
+#endif
         return true;
     }
 
@@ -2959,8 +3047,13 @@ bool TextBox::copySelection()
 
 void TextBox::pasteFromClipboard()
 {
-    //Screen *sc = dynamic_cast<Screen *>(this->window()->parent());
+#ifdef PICOGUI_GLFW
+    Screen *sc = dynamic_cast<Screen *>(this->window()->parent());
+    std::string str(glfwGetClipboardString(sc->window()));
+#elif defined PICOGUI_SDL
     std::string str( SDL_GetClipboardText() );
+#endif
+
     mValueTemp.insert(mCursorPos, str);
 }
 
@@ -2992,7 +3085,7 @@ void TextBox::updateCursor(NVGcontext *, float lastx,
                            {
     // handle mouse cursor events
     if (mMouseDownPos.x() != -1) {
-        if (mMouseDownModifier == SDLK_LSHIFT) {
+        if (mMouseDownModifier == KEYBOARD_KEY_LSHIFT) {
             if (mSelectionPos == -1)
                 mSelectionPos = mCursorPos;
         } else
@@ -3093,14 +3186,16 @@ void Label::draw(NVGcontext *ctx)
 
 static bool __glInit = false;
 
-std::map<SDL_Window *, Screen *> __nanogui_screens;
+std::map<Screen::ParentWindowPtr, Screen *> __picogui_screens;
 
 static void __initGl()
 {
    if( !__glInit )
    {
     __glInit = true;
- #ifndef GL_GLEXT_PROTOTYPES
+
+#ifdef PICOGUI_SDL
+#ifndef GL_GLEXT_PROTOTYPES
     #define ASSIGNGLFUNCTION(type,name) name = (type)SDL_GL_GetProcAddress( #name );
 #ifdef WIN32
     ASSIGNGLFUNCTION(PFNGLACTIVETEXTUREPROC,glActiveTexture)
@@ -3158,25 +3253,26 @@ static void __initGl()
     ASSIGNGLFUNCTION(PFNGLSTENCILOPSEPARATEPROC,glStencilOpSeparate)
     ASSIGNGLFUNCTION(PFNGLUNIFORM2FVPROC,glUniform2fv)
  #endif
+#endif
    }
 }
 
-Screen::Screen( SDL_Window* window, const Vector2i &size, const std::string &caption,
-               bool resizable, bool fullscreen)
-    : Widget(nullptr), _window(nullptr), mNVGContext(nullptr), mCaption(caption)
+Screen::Screen(ParentWindowPtr window, const Vector2i&, const std::string &caption,
+               bool, bool)
+    : Widget(nullptr), _window(nullptr), mNVGContext(nullptr), mCaption(caption)  
 {
     __initGl();
-    //SDL_SetWindowTitle( window, caption.c_str() );
-    initialize( window );
+    initialize(window);
 }
 
+#ifdef PICOGUI_SDL
 void Screen::onEvent(SDL_Event& event)
 {
-    auto it = __nanogui_screens.find(_window);
-    if (it == __nanogui_screens.end())
+    auto it = __picogui_screens.find(_window);
+    if (it == __picogui_screens.end())
        return;
 
-    switch( event.type )
+    switch (event.type)
     {
     case SDL_MOUSEMOTION:
     {
@@ -3217,12 +3313,18 @@ void Screen::onEvent(SDL_Event& event)
     break;
     }
 }
+#endif
 
+#ifdef PICOGUI_SDL
 void Screen::initialize(SDL_Window* window)
+#elif defined PICOGUI_GLFW
+void Screen::initialize(GLFWwindow* window)
+#endif
 {
     _window = window;
-    SDL_GetWindowSize( window, &mSize.rx(), &mSize.ry());
-    SDL_GetWindowSize( window, &mFBSize.rx(), &mFBSize.ry());
+
+    __getWindowSize(window, &mSize.rx(), &mSize.ry());
+    __getFramebufferSize(window, &mFBSize.rx(), &mFBSize.ry());
 
 #ifdef NDEBUG
     mNVGContext = nvgCreateX(false);
@@ -3237,15 +3339,15 @@ void Screen::initialize(SDL_Window* window)
     mMousePos = Vector2i::Zero();
     mMouseState = mModifiers = 0;
     mDragActive = false;
-    mLastInteraction = SDL_GetTicks();
+    mLastInteraction = __getTime();
     mProcessEvents = true;
     mBackground = Color(0.3f, 0.3f, 0.32f, 1.f);
-    __nanogui_screens[_window] = this;
+    __picogui_screens[_window] = this;
 }
 
 Screen::~Screen()
 {
-    __nanogui_screens.erase(_window);
+    __picogui_screens.erase(_window);
     if (mNVGContext)
         nvgDeleteX(mNVGContext);
 }
@@ -3257,9 +3359,9 @@ void Screen::setVisible(bool visible)
         mVisible = visible;
 
         if (visible)
-            SDL_ShowWindow(_window);
+            __showWindow(_window);
         else
-            SDL_HideWindow(_window);
+            __hideWindow(_window);
     }
 }
 
@@ -3267,7 +3369,7 @@ void Screen::setCaption(const std::string &caption)
 {
     if (caption != mCaption)
     {
-        SDL_SetWindowTitle( _window, caption.c_str());
+        __setWindowTitle( _window, caption.c_str());
         mCaption = caption;
     }
 }
@@ -3275,7 +3377,7 @@ void Screen::setCaption(const std::string &caption)
 void Screen::setSize(const Vector2i &size)
 {
     Widget::setSize(size);
-    SDL_SetWindowSize(_window, size.x(), size.y());
+    __setWindowSize(_window, size.x(), size.y());
 }
 
 void Screen::drawAll()
@@ -3289,9 +3391,8 @@ void Screen::drawWidgets()
     if (!mVisible)
         return;
 
-    //SDL_GL_MakeCurrent( _window, _glcontext );
-    //glfwGetFramebufferSize(mGLFWWindow, &mFBSize[0], &mFBSize[1]);
-    SDL_GetWindowSize( _window, &mSize.rx(), &mSize.ry());
+    __getFramebufferSize( _window, &mFBSize.rx(), &mFBSize.ry());
+    __getWindowSize( _window, &mSize.rx(), &mSize.ry());
     glViewport(0, 0, mFBSize.x(), mFBSize.y());
 
     /* Calculate pixel ratio for hi-dpi devices. */
@@ -3300,7 +3401,7 @@ void Screen::drawWidgets()
 
     draw(mNVGContext);
 
-    double elapsed = SDL_GetTicks() - mLastInteraction;
+    double elapsed = __getTime() - mLastInteraction;
 
     if (elapsed > 0.5f) {
         /* Draw tooltips */
@@ -3367,7 +3468,7 @@ bool Screen::keyboardCharacterEvent(unsigned int codepoint) {
 bool Screen::cursorPosCallbackEvent(double x, double y) {
     Vector2i p((int) x, (int) y);
     bool ret = false;
-    mLastInteraction = SDL_GetTicks();
+    mLastInteraction = __getTime();
     try {
         p -= Vector2i(1, 2);
 
@@ -3399,7 +3500,7 @@ bool Screen::cursorPosCallbackEvent(double x, double y) {
 
 bool Screen::mouseButtonCallbackEvent(int button, int action, int modifiers) {
     mModifiers = modifiers;
-    mLastInteraction = SDL_GetTicks();
+    mLastInteraction = __getTime();
     try {
         if (mFocusPath.size() > 1) {
             const Window *window =
@@ -3410,13 +3511,13 @@ bool Screen::mouseButtonCallbackEvent(int button, int action, int modifiers) {
             }
         }
 
-        if (action == SDL_MOUSEBUTTONDOWN)
+        if (action == MOUSE_BUTTON_PRESS)
             mMouseState |= 1 << button;
         else
             mMouseState &= ~(1 << button);
 
         auto dropWidget = findWidget(mMousePos);
-        if (mDragActive && action == SDL_MOUSEBUTTONUP &&
+        if (mDragActive && action == MOUSE_BUTTON_RELEASE &&
             dropWidget != mDragWidget)
             mDragWidget->mouseButtonEvent(
                 mMousePos - mDragWidget->parent()->absolutePosition(), button,
@@ -3427,7 +3528,7 @@ bool Screen::mouseButtonCallbackEvent(int button, int action, int modifiers) {
             glfwSetCursor(mGLFWWindow, mCursors[(int) mCursor]);
         }*/
 
-        if (action == SDL_MOUSEBUTTONDOWN && button == SDL_BUTTON_LEFT) {
+        if (action == MOUSE_BUTTON_PRESS && button == MOUSE_BUTTON_LEFT) {
             mDragWidget = findWidget(mMousePos);
             if (mDragWidget == this)
                 mDragWidget = nullptr;
@@ -3439,7 +3540,7 @@ bool Screen::mouseButtonCallbackEvent(int button, int action, int modifiers) {
             mDragWidget = nullptr;
         }
 
-        return mouseButtonEvent(mMousePos, button, action == SDL_MOUSEBUTTONDOWN,
+        return mouseButtonEvent(mMousePos, button, action == MOUSE_BUTTON_PRESS,
                                 mModifiers);
     } catch (const std::exception &e) {
         std::cerr << "Caught exception in event handler: " << e.what() << std::endl;
@@ -3451,7 +3552,7 @@ bool Screen::mouseButtonCallbackEvent(int button, int action, int modifiers) {
 
 bool Screen::keyCallbackEvent(int key, int scancode, int action, int mods)
 {
-    mLastInteraction = SDL_GetTicks();
+    mLastInteraction = __getTime();
     try {
         return keyboardEvent(key, scancode, action, mods);
     } catch (const std::exception &e) {
@@ -3462,7 +3563,7 @@ bool Screen::keyCallbackEvent(int key, int scancode, int action, int mods)
 
 bool Screen::charCallbackEvent(unsigned int codepoint)
  {
-    mLastInteraction = SDL_GetTicks();
+    mLastInteraction = __getTime();
     try {
         return keyboardCharacterEvent(codepoint);
     } catch (const std::exception &e) {
@@ -3481,7 +3582,7 @@ bool Screen::dropCallbackEvent(int count, const char **filenames) {
 
 bool Screen::scrollCallbackEvent(double x, double y)
 {
-    mLastInteraction = SDL_GetTicks();
+    mLastInteraction = __getTime();
     try {
         if (mFocusPath.size() > 1) {
             const Window *window =
@@ -3504,15 +3605,15 @@ bool Screen::scrollCallbackEvent(double x, double y)
 bool Screen::resizeCallbackEvent(int, int)
 {
     Vector2i fbSize, size;
-    //glfwGetFramebufferSize(mGLFWWindow, &fbSize[0], &fbSize[1]);
-    SDL_GetWindowSize(_window, &size.rx(), &size.ry());
+    __getFramebufferSize( _window, &fbSize.rx(), &fbSize.ry());
+    __getWindowSize(_window, &size.rx(), &size.ry());
 
     if (mFBSize == Vector2i(0, 0) || size == Vector2i(0, 0))
         return false;
 
     mFBSize = fbSize;
     mSize = size;
-    mLastInteraction = SDL_GetTicks();
+    mLastInteraction = __getTime();
 
     try {
         return resizeEvent(mSize);
@@ -3611,8 +3712,6 @@ void Screen::performLayout()
     #include <signal.h>
     #include <sys/dir.h>
 #endif
-
-extern std::map<SDL_Window *, Screen *> __nanogui_screens;
 
 std::array<char, 8> utf8(int c) {
     std::array<char, 8> seq;
@@ -3786,7 +3885,10 @@ NAMESPACE_END(nanogui)
 
 /* Allow enforcing the GL2 implementation of NanoVG */
 #define NANOVG_GL2_IMPLEMENTATION
+
+#ifdef PICOGUI_SDL
 #include <SDL.h>
+#endif
 
 
 // Create flags
@@ -4153,7 +4255,7 @@ static void glnvg__dumpShaderError(GLuint shader, const char* name, const char* 
 {
         GLchar str[512+1];
         GLsizei len = 0;
-  glGetShaderInfoLog(shader, 512, &len, str);
+        glGetShaderInfoLog(shader, 512, &len, str);
         if (len > 512) len = 512;
         str[len] = '\0';
         printf("Shader %s/%s error:\n%s\n", name, type, str);
@@ -4163,7 +4265,7 @@ static void glnvg__dumpProgramError(GLuint prog, const char* name)
 {
         GLchar str[512+1];
         GLsizei len = 0;
-  glGetProgramInfoLog(prog, 512, &len, str);
+        glGetProgramInfoLog(prog, 512, &len, str);
         if (len > 512) len = 512;
         str[len] = '\0';
         printf("Program %s error:\n%s\n", name, str);

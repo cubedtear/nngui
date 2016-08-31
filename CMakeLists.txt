@@ -6,13 +6,16 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
     set(CMAKE_CXX_FLAGS "-std=c++11")
 endif()
 
-option(PICOGUI_SDL_ENABLED "Build PicoGUI with SDL?" ON)
+option(PICOGUI_SDL_ENABLED "Build PicoGUI with SDL?" OFF)
+option(PICOGUI_GLFW_ENABLED "Build PicoGUI with SDL?" ON)
+option(PICOGUI_BUILD_EXAMPLE "Build PicoGUI examples with openGL?" ON)
 
 if (PICOGUI_SDL_ENABLED)
-    add_definitions( -DPICOGUI_SDL )
-    option(PICOGUI_BUILD_EXAMPLESDL  "Build PicoGUI examples with SDL2?" ON)
-else()
-    option(PICOGUI_BUILD_EXAMPLE "Build PicoGUI examples with openGL?" ON)
+    add_definitions(-DPICOGUI_SDL)
+endif()
+
+if (PICOGUI_GLFW_ENABLED)
+    add_definitions(-DPICOGUI_GLFW)
 endif()
 
 # Required libraries for linking against picogui (all targets)
@@ -67,12 +70,24 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU"
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 endif()
 
-if(PICOGUI_BUILD_EXAMPLESDL)
+if(PICOGUI_SDL_ENABLED)
   set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 
   find_package(SDL2 REQUIRED)
+  include_directories(${SDL2_INCLUDE_DIR})
 
   list(APPEND PICOGUI_EXTRA_LIBS ${SDL2_LIBRARY})
+endif()
+
+if(PICOGUI_GLFW_ENABLED)
+  set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
+
+  find_package(GLFW REQUIRED)
+  include_directories(${GLFW_INCLUDE_DIR})
+
+  message("GLFW include dirs is ${GLFW_INCLUDE_DIR}")
+
+  list(APPEND PICOGUI_EXTRA_LIBS ${GLFW_LIBRARIES})
 endif()
 
 # Required core libraries on various platforms
@@ -90,8 +105,7 @@ elseif(CMAKE_SYSTEM MATCHES "Linux")
 endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}
-                    ${CMAKE_CURRENT_BINARY_DIR}
-                    ${SDL2_INCLUDE_DIR})
+                    ${CMAKE_CURRENT_BINARY_DIR})
 
 message(${PICOGUI_EXTRA_LIBS})
 
@@ -101,7 +115,7 @@ list(APPEND PICOGUI_BASIC_SOURCE
      picogui_resources.cpp)
 
 # Build example application if desired
-if(PICOGUI_BUILD_EXAMPLESDL)
+if(PICOGUI_BUILD_EXAMPLE)
   add_executable(example1 ${PICOGUI_EXTRA_SOURCE} ${PICOGUI_BASIC_SOURCE} picogui_demo1.cpp )
   add_executable(example2 ${PICOGUI_EXTRA_SOURCE} ${PICOGUI_BASIC_SOURCE} picogui_demo2.cpp )
 

@@ -26405,4 +26405,4 @@ uint8_t roboto_regular_ttf[] = {
 
 uint32_t roboto_regular_ttf_size = 145348;
 
-}//end namespace nanogui
+}//end namespace picogui
