@@ -19,7 +19,12 @@
 
 #include <cmath>
 #include <iostream>
+
+#ifdef PICOGUI_SDL
 #include <SDL.h>
+#elif defined PICOGUI_GLFW
+#include <GLFW/glfw3.h>
+#endif
 
 using std::cout;
 using std::cerr;
@@ -32,7 +37,7 @@ using namespace picogui;
 class TestWindow : public picogui::Screen
 {
 public:
-    TestWindow( SDL_Window* pwindow, int rwidth, int rheight )
+    TestWindow(Screen::ParentWindowPtr pwindow, int rwidth, int rheight )
       : picogui::Screen( pwindow, Vector2i(rwidth, rheight), "SDL_gui Test")
       {
         mProgress = nullptr;
@@ -316,6 +321,7 @@ private:
 
 int main(int /* argc */, char ** /* argv */)
 {
+#ifdef PICOGUI_SDL
     SDL_Init(SDL_INIT_VIDEO);   // Initialize SDL2
 
     SDL_Window *window;        // Declare a pointer to an SDL_Window
@@ -350,7 +356,6 @@ int main(int /* argc */, char ** /* argv */)
     SDL_GL_CreateContext(window);
 
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED );
-
     TestWindow *screen = new TestWindow( window, winWidth, winHeight );
 
     bool quit = false;
@@ -394,6 +399,9 @@ int main(int /* argc */, char ** /* argv */)
         #endif
         return -1;
     }
+#elif defined PICOGUI_GLFW
+
+#endif
 
     return 0;
 }

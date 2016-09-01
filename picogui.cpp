@@ -29,7 +29,7 @@
         #define GL_GLEXT_PROTOTYPES
     #endif
     #include <GLFW/glfw3.h>
-    #include <GL/glext.h>
+    //#include <GL/glext.h>
 #endif
 
 #ifdef _WIN32
@@ -42,11 +42,6 @@
 #endif
 
 #define NVG_PI 3.14159265358979323846264338327f
-
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable: 4201)  // nonstandard extension used : nameless struct/union
-#endif
 
 #ifdef __APPLE__
 #define SYSTEM_COMMAND_MOD GLFW_MOD_SUPER
@@ -117,6 +112,11 @@
   #define __setWindowSize SDL_SetWindowSize
   #define __getWindowSize SDL_GetWindowSize
   #define __getFramebufferSize SDL_GetWindowSize
+#endif
+
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4201)  // nonstandard extension used : nameless struct/union
 #endif
 
 typedef struct NVGcontext NVGcontext;
@@ -294,7 +294,6 @@ int nvgTextBreakLines(NVGcontext* ctx, const char* string, const char* end, floa
 
 //
 // Internal Render API
-//
 enum NVGtexture {
     NVG_TEXTURE_ALPHA = 0x01,
     NVG_TEXTURE_RGBA = 0x02,
@@ -346,7 +345,6 @@ typedef struct NVGparams NVGparams;
 // Constructor and destructor, called by the render back-end.
 NVGcontext* nvgCreateInternal(NVGparams* params);
 void nvgDeleteInternal(NVGcontext* ctx);
-
 NVGparams* nvgInternalParams(NVGcontext* ctx);
 
 // Debug function to dump cached path data.
@@ -357,69 +355,7 @@ void nvgDebugDumpPathCache(NVGcontext* ctx);
 #endif
 
 #define NVG_NOTUSED(v) for (;;) { (void)(1 ? (void)0 : ( (void)(v) ) ); break; }
-
-
-/*
-struct glhelper
-{
-PFNGLACTIVETEXTUREPROC glActiveTexture;
-PFNGLCREATESHADERPROC glCreateShader;
-PFNGLSHADERSOURCEPROC glShaderSource ;
-PFNGLUNIFORMMATRIX4FVPROC glUniformMatrix4fv ;
-PFNGLCOMPILESHADERPROC glCompileShader ;
-PFNGLGETSHADERIVPROC glGetShaderiv ;
-PFNGLUSEPROGRAMPROC glUseProgram ;
-PFNGLUNIFORM1IPROC glUniform1i ;
-PFNGLUNIFORM1FPROC glUniform1f ;
-PFNGLUNIFORM2IPROC glUniform2i ;
-PFNGLUNIFORM2FPROC glUniform2f ;
-PFNGLUNIFORM3FPROC glUniform3f ;
-PFNGLUNIFORM4FPROC glUniform4f ;
-PFNGLUNIFORM4FVPROC glUniform4fv ;
-PFNGLCREATEPROGRAMPROC glCreateProgram ;
-PFNGLATTACHSHADERPROC glAttachShader ;
-PFNGLGETSHADERINFOLOGPROC glGetShaderInfoLog ;
-PFNGLLINKPROGRAMPROC glLinkProgram ;
-PFNGLGETPROGRAMIVPROC glGetProgramiv ;
-PFNGLGENVERTEXARRAYSPROC glGenVertexArrays ;
-PFNGLGETPROGRAMINFOLOGPROC glGetProgramInfoLog ;
-PFNGLBINDVERTEXARRAYPROC glBindVertexArray ;
-PFNGLBINDBUFFERPROC glBindBuffer ;
-PFNGLGETATTRIBLOCATIONPROC  glGetAttribLocation ;
-PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation ;
-PFNGLGENBUFFERSPROC  glGenBuffers ;
-PFNGLBINDATTRIBLOCATIONPROC glBindAttribLocation;
-PFNGLGETUNIFORMBLOCKINDEXPROC glGetUniformBlockIndex;
-PFNGLUNIFORMBLOCKBINDINGPROC glUniformBlockBinding;
-PFNGLBUFFERDATAPROC  glBufferData ;
-PFNGLDISABLEVERTEXATTRIBARRAYPROC  glDisableVertexAttribArray ;
-PFNGLENABLEVERTEXATTRIBARRAYPROC  glEnableVertexAttribArray ;
-PFNGLGETBUFFERSUBDATAPROC  glGetBufferSubData ;
-PFNGLVERTEXATTRIBPOINTERPROC  glVertexAttribPointer ;
-PFNGLDELETEBUFFERSPROC  glDeleteBuffers ;
-PFNGLBINDFRAMEBUFFERPROC  glBindFramebuffer ;
-PFNGLBINDRENDERBUFFERPROC  glBindRenderbuffer ;
-PFNGLRENDERBUFFERSTORAGEPROC  glRenderbufferStorage ;
-PFNGLDELETEVERTEXARRAYSPROC  glDeleteVertexArrays ;
-PFNGLDELETEPROGRAMPROC  glDeleteProgram ;
-PFNGLDELETESHADERPROC  glDeleteShader ;
-PFNGLGENRENDERBUFFERSPROC  glGenRenderbuffers ;
-PFNGLRENDERBUFFERSTORAGEMULTISAMPLEPROC  glRenderbufferStorageMultisample ;
-PFNGLGENFRAMEBUFFERSPROC  glGenFramebuffers ;
-PFNGLFRAMEBUFFERRENDERBUFFERPROC  glFramebufferRenderbuffer ;
-PFNGLCHECKFRAMEBUFFERSTATUSPROC  glCheckFramebufferStatus ;
-PFNGLDELETERENDERBUFFERSPROC  glDeleteRenderbuffers ;
-PFNGLBLITFRAMEBUFFERPROC glBlitFramebuffer ;
-
-PFNGLGENERATEMIPMAPPROC glGenerateMipmap;
-PFNGLBINDBUFFERRANGEPROC glBindBufferRange;
-PFNGLSTENCILOPSEPARATEPROC glStencilOpSeparate;
-PFNGLUNIFORM2FVPROC glUniform2fv;
-};
-
-glhelper& glh();*/
-
-#ifdef PICOGUI_SDL
+#if defined(PICOGUI_SDL)
 #ifndef GL_GLEXT_PROTOTYPES
 #ifdef WIN32
   PFNGLACTIVETEXTUREPROC glActiveTexture;
@@ -504,6 +440,119 @@ glhelper& glh();*/
   PFNGLSTENCILOPSEPARATEPROC glStencilOpSeparate;
   PFNGLUNIFORM2FVPROC glUniform2fv;
 #endif
+#endif
+
+#if defined(PICOGUI_GLFW)
+
+#if !defined(APIENTRY)
+#  if defined(_WIN32)
+#    define APIENTRY _stdcall
+#  else
+#    define APIENTRY
+#  endif
+#endif
+
+#ifndef APIENTRYP
+#define APIENTRYP APIENTRY *
+#endif
+
+#define GL_VERTEX_SHADER 0x8B31
+#define GL_FRAGMENT_SHADER 0x8B30
+#define GL_COMPILE_STATUS 0x8B81
+#define GL_LINK_STATUS 0x8B82
+#define GL_GENERATE_MIPMAP                0x8191
+#define GL_CLAMP_TO_EDGE 0x812F
+#define GL_INCR_WRAP 0x8507
+#define GL_DECR_WRAP 0x8508
+#define GL_TEXTURE0 0x84C0
+#define GL_ARRAY_BUFFER 0x8892
+#define GL_STREAM_DRAW 0x88E0
+
+typedef char GLchar;
+typedef unsigned int GLenum;
+typedef ptrdiff_t GLsizeiptr;
+
+typedef GLuint (APIENTRYP PFNGLCREATESHADERPROC)(GLenum type);
+PFNGLCREATESHADERPROC glCreateShader;
+
+typedef void (APIENTRYP PFNGLGETSHADERINFOLOGPROC)(GLuint shader, GLsizei bufSize, GLsizei* length, GLchar* infoLog);
+PFNGLGETSHADERINFOLOGPROC glGetShaderInfoLog;
+
+typedef void (APIENTRYP PFNGLGETPROGRAMINFOLOGPROC)(GLuint program, GLsizei bufSize, GLsizei* length, GLchar* infoLog);
+PFNGLGETPROGRAMINFOLOGPROC glGetProgramInfoLog;
+
+typedef GLuint (APIENTRYP PFNGLCREATEPROGRAMPROC)();
+PFNGLCREATEPROGRAMPROC glCreateProgram;
+
+typedef void (APIENTRYP PFNGLSHADERSOURCEPROC)(GLuint shader, GLsizei count, const GLchar** string, const GLint* length);
+PFNGLSHADERSOURCEPROC glShaderSource;
+
+typedef void (APIENTRYP PFNGLCOMPILESHADERPROC)(GLuint shader);
+PFNGLCOMPILESHADERPROC glCompileShader;
+
+typedef void (APIENTRYP PFNGLGETSHADERIVPROC)(GLuint shader, GLenum pname, GLint* params);
+PFNGLGETSHADERIVPROC glGetShaderiv;
+
+typedef void (APIENTRYP PFNGLATTACHSHADERPROC)(GLuint program, GLuint shader);
+PFNGLATTACHSHADERPROC glAttachShader;
+
+typedef void (APIENTRYP PFNGLBINDATTRIBLOCATIONPROC)(GLuint program, GLuint index, const GLchar* name);
+PFNGLBINDATTRIBLOCATIONPROC glBindAttribLocation;
+
+typedef void (APIENTRYP PFNGLLINKPROGRAMPROC)(GLuint program);
+PFNGLLINKPROGRAMPROC glLinkProgram;
+
+typedef void (APIENTRYP PFNGLGETPROGRAMIVPROC)(GLuint program, GLenum pname, GLint* params);
+PFNGLGETPROGRAMIVPROC glGetProgramiv;
+
+typedef void (APIENTRYP PFNGLDELETEPROGRAMPROC)(GLuint program);
+PFNGLDELETEPROGRAMPROC glDeleteProgram;
+
+typedef void (APIENTRYP PFNGLDELETESHADERPROC)(GLuint shader);
+PFNGLDELETESHADERPROC glDeleteShader;
+
+typedef GLint (APIENTRYP PFNGLGETUNIFORMLOCATIONPROC)(GLuint program, const GLchar* name);
+PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation;
+
+typedef void (APIENTRYP PFNGLGENBUFFERSPROC)(GLsizei n, GLuint* buffers);
+PFNGLGENBUFFERSPROC glGenBuffers;
+
+typedef void (APIENTRYP PFNGLUNIFORM4FVPROC)(GLint location, GLsizei count, const GLfloat* value);
+PFNGLUNIFORM4FVPROC glUniform4fv;
+
+typedef void (APIENTRYP PFNGLSTENCILOPSEPARATEPROC)(GLenum face, GLenum sfail, GLenum dpfail, GLenum dppass);
+PFNGLSTENCILOPSEPARATEPROC glStencilOpSeparate;
+
+typedef void (APIENTRYP PFNGLUSEPROGRAMPROC)(GLuint program);
+PFNGLUSEPROGRAMPROC glUseProgram;
+
+typedef void (APIENTRYP PFNGLACTIVETEXTUREPROC)(GLenum texture);
+PFNGLACTIVETEXTUREPROC glActiveTexture;
+
+typedef void (APIENTRYP PFNGLBINDBUFFERPROC)(GLenum target, GLuint buffer);
+PFNGLBINDBUFFERPROC glBindBuffer;
+
+typedef void (APIENTRYP PFNGLBUFFERDATAPROC)(GLenum target, GLsizeiptr size, const void* data, GLenum usage);
+PFNGLBUFFERDATAPROC glBufferData;
+
+typedef void (APIENTRYP PFNGLENABLEVERTEXATTRIBARRAYPROC)(GLuint index);
+PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
+
+typedef void (APIENTRYP PFNGLVERTEXATTRIBPOINTERPROC)(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void* pointer);
+PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
+
+typedef void (APIENTRYP PFNGLUNIFORM1IPROC)(GLint location, GLint v0);
+PFNGLUNIFORM1IPROC glUniform1i;
+
+typedef void (APIENTRYP PFNGLUNIFORM2FVPROC)(GLint location, GLsizei count, const GLfloat* value);
+PFNGLUNIFORM2FVPROC glUniform2fv;
+
+typedef void (APIENTRYP PFNGLDISABLEVERTEXATTRIBARRAYPROC)(GLuint index);
+PFNGLDISABLEVERTEXATTRIBARRAYPROC glDisableVertexAttribArray;
+
+typedef void (APIENTRYP PFNGLDELETEBUFFERSPROC)(GLsizei n, const GLuint* buffers);
+PFNGLDELETEBUFFERSPROC glDeleteBuffers;
+
 #endif
 
 NAMESPACE_BEGIN(picogui)
@@ -3195,8 +3244,12 @@ static void __initGl()
     __glInit = true;
 
 #ifdef PICOGUI_SDL
-#ifndef GL_GLEXT_PROTOTYPES
     #define ASSIGNGLFUNCTION(type,name) name = (type)SDL_GL_GetProcAddress( #name );
+#elif defined PICOGUI_GLFW
+    #define ASSIGNGLFUNCTION(type,name) name = (type)glfwGetProcAddress( #name );
+#endif
+
+#ifndef GL_GLEXT_PROTOTYPES
 #ifdef WIN32
     ASSIGNGLFUNCTION(PFNGLACTIVETEXTUREPROC,glActiveTexture)
 #endif
@@ -3252,7 +3305,8 @@ static void __initGl()
     ASSIGNGLFUNCTION(PFNGLBINDBUFFERRANGEPROC,glBindBufferRange)
     ASSIGNGLFUNCTION(PFNGLSTENCILOPSEPARATEPROC,glStencilOpSeparate)
     ASSIGNGLFUNCTION(PFNGLUNIFORM2FVPROC,glUniform2fv)
- #endif
+#else
+    ASSIGNGLFUNCTION(PFNGLCREATESHADERPROC,glCreateShader)
 #endif
    }
 }
