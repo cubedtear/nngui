@@ -1,23 +1,23 @@
-# PicoGUI
+# nnGUI
 
-PicoGUI is a minimalystic port of https://github.com/wjakob/nanogui , which
+nnGUI is a minimalystic port of https://github.com/wjakob/nanogui , which
 need only two cpp files for compile.
 
 ## Example screenshot
 ![Screenshot](http://i.imgur.com/fe9nJBm.png "Screenshot")
 
 ## Description
-PicoGUI may builds with [SDL2/OpenGL](http://www.libsdl.org/) for cross-platform OpenGL context
+nnGUI may builds with [SDL2/OpenGL](http://www.libsdl.org/) for cross-platform OpenGL context
 creation and event handling, [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page) for
 basic vector types, and [NanoVG](https://github.com/memononen/NanoVG) to draw
 2D primitives.
 
-PicoGUI currently works on Mac OS X (Clang) Linux (GCC or Clang) and Windows
+nnGUI currently works on Mac OS X (Clang) Linux (GCC or Clang) and Windows
 (Visual Studio ≥ 2015, Gcc ≥ 4.8); it requires a recent C++11 capable compiler. All
 dependencies are jointly built using a CMake-based build system.
 
 ## Creating widgets
-PicoGUI makes it easy to instantiate widgets, set layout constraints, and
+nnGUI makes it easy to instantiate widgets, set layout constraints, and
 register event callbacks using high-level C++11 code. For instance, the
 following two lines from the included example application add a new button to
 an existing window `window` and register an event callback.
@@ -92,6 +92,6 @@ $ apt-get install cmake xorg-dev libglu1-mesa-dev libsdl2.0
 ```
 ### License
 
-picogui is provided under a BSD-style license that can be found in the
+nngui is provided under a BSD-style license that can be found in the
 ``LICENSE.txt`` file. By using, distributing, or contributing to this project,
 you agree to the terms and conditions of this license.

@@ -1,28 +1,28 @@
 cmake_minimum_required (VERSION 2.8.3)
 
-project("PicoGUI")
+project("nnGUI")
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
     set(CMAKE_CXX_FLAGS "-std=c++11")
 endif()
 
-option(PICOGUI_SDL_ENABLED "Build PicoGUI with SDL?" OFF)
-option(PICOGUI_GLFW_ENABLED "Build PicoGUI with SDL?" ON)
-option(PICOGUI_BUILD_EXAMPLE "Build PicoGUI examples with openGL?" ON)
+option(NNGUI_SDL_ENABLED "Build nnGUI with SDL?" OFF)
+option(NNGUI_GLFW_ENABLED "Build nnGUI with SDL?" ON)
+option(NNGUI_BUILD_EXAMPLE "Build nGUI examples with openGL?" ON)
 
-if (PICOGUI_SDL_ENABLED)
-    add_definitions(-DPICOGUI_SDL)
+if (NNGUI_SDL_ENABLED)
+    add_definitions(-DNNGUI_SDL)
 endif()
 
-if (PICOGUI_GLFW_ENABLED)
-    add_definitions(-DPICOGUI_GLFW)
+if (NNGUI_GLFW_ENABLED)
+    add_definitions(-DNNGUI_GLFW)
 endif()
 
-# Required libraries for linking against picogui (all targets)
-set(PICOGUI_EXTRA_LIBS "")
+# Required libraries for linking against nngui (all targets)
+set(NNGUI_EXTRA_LIBS "")
 
-# Platform-dependent files for libpicogui
-set(PICOGUI_EXTRA_SOURCE "")
+# Platform-dependent files for nngui
+set(NNGUI_EXTRA_SOURCE "")
 
 include(CheckCXXCompilerFlag)
 
@@ -70,16 +70,16 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU"
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 endif()
 
-if(PICOGUI_SDL_ENABLED)
+if(NNGUI_SDL_ENABLED)
   set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 
   find_package(SDL2 REQUIRED)
   include_directories(${SDL2_INCLUDE_DIR})
 
-  list(APPEND PICOGUI_EXTRA_LIBS ${SDL2_LIBRARY})
+  list(APPEND NNGUI_EXTRA_LIBS ${SDL2_LIBRARY})
 endif()
 
-if(PICOGUI_GLFW_ENABLED)
+if(NNGUI_GLFW_ENABLED)
   set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 
   find_package(GLFW REQUIRED)
@@ -87,40 +87,40 @@ if(PICOGUI_GLFW_ENABLED)
 
   message("GLFW include dirs is ${GLFW_INCLUDE_DIR}")
 
-  list(APPEND PICOGUI_EXTRA_LIBS ${GLFW_LIBRARIES})
+  list(APPEND NNGUI_EXTRA_LIBS ${GLFW_LIBRARIES})
 endif()
 
 # Required core libraries on various platforms
 if (WIN32) 
-  list(APPEND PICOGUI_EXTRA_LIBS opengl32)
+  list(APPEND NNGUI_EXTRA_LIBS opengl32)
 elseif (APPLE)
   find_library(cocoa_library Cocoa)
   find_library(opengl_library OpenGL)
   find_library(corevideo_library CoreVideo)
   find_library(iokit_library IOKit)
-  list(APPEND PICOGUI_EXTRA_LIBS ${cocoa_library} ${opengl_library} ${corevideo_library} ${iokit_library})
-  list(APPEND PICOGUI_EXTRA_SOURCE darwin.mm)
+  list(APPEND NNGUI_EXTRA_LIBS ${cocoa_library} ${opengl_library} ${corevideo_library} ${iokit_library})
+  list(APPEND NNGUI_EXTRA_SOURCE darwin.mm)
 elseif(CMAKE_SYSTEM MATCHES "Linux")
-  list(APPEND PICOGUI_EXTRA_LIBS GL Xxf86vm Xrandr Xinerama Xcursor Xi X11 pthread dl rt)
+  list(APPEND NNGUI_EXTRA_LIBS GL Xxf86vm Xrandr Xinerama Xcursor Xi X11 pthread dl rt)
 endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}
                     ${CMAKE_CURRENT_BINARY_DIR})
 
-message(${PICOGUI_EXTRA_LIBS})
+message(${NNGUI_EXTRA_LIBS})
 
-set(PICOGUI_BASIC_SOURCE "")
-list(APPEND PICOGUI_BASIC_SOURCE
-     picogui.cpp
-     picogui_resources.cpp)
+set(NNGUI_BASIC_SOURCE "")
+list(APPEND NNGUI_BASIC_SOURCE
+     nngui.cpp
+     nngui_resources.cpp)
 
 # Build example application if desired
-if(PICOGUI_BUILD_EXAMPLE)
-  add_executable(example1 ${PICOGUI_EXTRA_SOURCE} ${PICOGUI_BASIC_SOURCE} picogui_demo1.cpp )
-  add_executable(example2 ${PICOGUI_EXTRA_SOURCE} ${PICOGUI_BASIC_SOURCE} picogui_demo2.cpp )
+if(NNGUI_BUILD_EXAMPLE)
+  add_executable(example1 ${NNGUI_EXTRA_SOURCE} ${NNGUI_BASIC_SOURCE} nngui_demo1.cpp )
+  add_executable(example2 ${NNGUI_EXTRA_SOURCE} ${NNGUI_BASIC_SOURCE} nngui_demo2.cpp )
 
-  target_link_libraries(example1 ${PICOGUI_EXTRA_LIBS})
-  target_link_libraries(example2 ${PICOGUI_EXTRA_LIBS})
+  target_link_libraries(example1 ${NNGUI_EXTRA_LIBS})
+  target_link_libraries(example2 ${NNGUI_EXTRA_LIBS})
 
   # Copy icons for example application
   file(COPY resources/icons DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
