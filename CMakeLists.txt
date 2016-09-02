@@ -16,6 +16,7 @@ endif()
 
 if (NNGUI_GLFW_ENABLED)
     add_definitions(-DNNGUI_GLFW)
+    set(GLFW_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/../glfw")
 endif()
 
 # Required libraries for linking against nngui (all targets)

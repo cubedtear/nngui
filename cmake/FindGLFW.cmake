@@ -30,15 +30,10 @@
 # GLFW_LIBRARIES
 #
 
-if(WIN32)
-  set(WIN32_GLFW_DEPENDENCIES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../glfw") #windows
-endif(WIN32)
-
 find_path( GLFW_INCLUDE_DIR 
     NAMES
         GLFW/glfw3.h
     HINTS
-        "${WIN32_GLFW_DEPENDENCIES_DIR}/include"
         "${GLFW_LOCATION}/include"
         "$ENV{GLFW_LOCATION}/include"
     PATHS
@@ -88,8 +83,7 @@ if (WIN32)
             NAMES
                 glfw32
             HINTS
-                "${WIN32_GLFW_DEPENDENCIES_DIR}/lib-mingw-w64"
-                "${GLFW_LOCATION}/lib"
+                 "${GLFW_LOCATION}/lib"
                 "${GLFW_LOCATION}/lib/x64"
                 "$ENV{GLFW_LOCATION}/lib"
             PATHS
@@ -113,7 +107,6 @@ if (WIN32)
                 "${GLFW_LOCATION}/lib/x64"
                 "${GLFW_LOCATION}/lib-msvc110"
                 "${GLFW_LOCATION}/lib-vc2012"
-                "${WIN32_GLFW_DEPENDENCIES_DIR}/lib-vc2012"
                 "$ENV{GLFW_LOCATION}/lib"
                 "$ENV{GLFW_LOCATION}/lib/x64"
                 "$ENV{GLFW_LOCATION}/lib-msvc110"
