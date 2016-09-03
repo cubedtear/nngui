@@ -84,11 +84,11 @@ int main(int /* argc */, char ** /* argv */)
 
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED );
 
-    Screen *screen = new Screen( window, Vector2i(winWidth, winHeight), "NanoGUI test");
+    Screen *screen = new Screen( window, Vec2i(winWidth, winHeight), "NanoGUI test");
 
     bool enabled = true;
     FormHelper *gui = new FormHelper(screen);
-    ref<Window> rwindow = gui->addWindow(Vector2i(10, 10), "Form helper example");
+    ref<Window> rwindow = gui->addWindow(Vec2i(10, 10), "Form helper example");
     gui->addGroup("Basic types");
     gui->addVariable("bool", bvar);
     gui->addVariable("string", strval);
@@ -153,7 +153,198 @@ int main(int /* argc */, char ** /* argv */)
         return -1;
     }
 #elif defined NNGUI_GLFW
+    glfwSetErrorCallback(
+        [](int error, const char *descr) {
+            if (error == GLFW_NOT_INITIALIZED)
+                return; /* Ignore */
+            std::cerr << "GLFW error " << error << ": " << descr << std::endl;
+        }
+    );
 
+    glfwDefaultWindowHints();
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+
+    bool resizable = false;
+    bool fullscreen = false;
+    glfwWindowHint(GLFW_SAMPLES, 0);
+    glfwWindowHint(GLFW_RED_BITS, 8);
+    glfwWindowHint(GLFW_GREEN_BITS, 8);
+    glfwWindowHint(GLFW_BLUE_BITS, 8);
+    glfwWindowHint(GLFW_ALPHA_BITS, 8);
+    glfwWindowHint(GLFW_STENCIL_BITS, 8);
+    glfwWindowHint(GLFW_DEPTH_BITS, 24);
+    glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
+    glfwWindowHint(GLFW_RESIZABLE, resizable ? GL_TRUE : GL_FALSE);
+
+    if (!glfwInit())
+        throw std::runtime_error("Could not initialize GLFW!");
+    glfwSetTime(0);
+
+    std::string caption = "An GLFW window";
+
+    Vec2i size(1024, 768);
+    Screen::ParentWindowPtr window;
+    if (fullscreen) {
+        GLFWmonitor *monitor = glfwGetPrimaryMonitor();
+        const GLFWvidmode *mode = glfwGetVideoMode(monitor);
+        size.set(mode->width, mode->height);
+        window = glfwCreateWindow(mode->width, mode->height,
+                                       caption.c_str(), monitor, nullptr);
+    } else {
+        window = glfwCreateWindow(size.x(), size.y(),
+                                  caption.c_str(), nullptr, nullptr);
+    }
+
+    if (!window)
+        throw std::runtime_error("Could not create an OpenGL " +
+                                 std::to_string(3) + "." +
+                                 std::to_string(3) + " context!");
+
+    glfwMakeContextCurrent(window);
+
+    Screen *screen = new Screen( window, Vec2i(size.x(), size.y()), "NanoGUI test");
+
+    bool enabled = true;
+    FormHelper *gui = new FormHelper(screen);
+    ref<Window> rwindow = gui->addWindow(Vec2i(10, 10), "Form helper example");
+    gui->addGroup("Basic types");
+    gui->addVariable("bool", bvar);
+    gui->addVariable("string", strval);
+
+    gui->addGroup("Validating fields");
+    gui->addVariable("int", ivar);
+    gui->addVariable("float", fvar);
+    gui->addVariable("double", dvar);
+
+    gui->addGroup("Complex types");
+    gui->addVariable("Enumeration", enumval, enabled)
+       ->setItems({"Item 1", "Item 2", "Item 3"});
+    gui->addVariable("Color", colval);
+
+    gui->addGroup("Other widgets");
+    gui->addButton("A button", [](){ std::cout << "Button pressed." << std::endl; });
+
+    screen->setVisible(true);
+    screen->performLayout();
+    rwindow->center();
+    glfwSetCursorPosCallback(window,
+        [](GLFWwindow *w, double x, double y)
+        {
+            Screen* s = __nngui_findScreen(w);
+            if (s)
+            {
+                s->cursorPosCallbackEvent(x, y);
+            }
+        }
+    );
+
+    glfwSetMouseButtonCallback(window,
+        [](GLFWwindow *w, int button, int action, int modifiers) {
+            Screen* s = __nngui_findScreen(w);
+            if (s)
+            {
+                s->mouseButtonCallbackEvent(button, action, modifiers);
+            }
+        }
+    );
+
+    glfwSetKeyCallback(window,
+        [](GLFWwindow *w, int key, int scancode, int action, int mods) {
+            Screen* s = __nngui_findScreen(w);
+            if (s)
+            {
+                s->keyCallbackEvent(key, scancode, action, mods);
+            }
+        }
+    );
+
+    glfwSetCharCallback(window,
+        [](GLFWwindow *w, unsigned int codepoint) {
+            Screen* s = __nngui_findScreen(w);
+            if (s)
+            {
+                s->charCallbackEvent(codepoint);
+            }
+        }
+    );
+
+    glfwSetDropCallback(window,
+        [](GLFWwindow *w, int count, const char **filenames) {
+            Screen* s = __nngui_findScreen(w);
+            if (s)
+            {
+                s->dropCallbackEvent(count, filenames);
+            }
+        }
+    );
+
+    glfwSetScrollCallback(window,
+        [](GLFWwindow *w, double x, double y) {
+            Screen* s = __nngui_findScreen(w);
+            if (s)
+            {
+                s->scrollCallbackEvent(x, y);
+            }
+        }
+    );
+
+    glfwSetFramebufferSizeCallback(window,
+        [](GLFWwindow* w, int width, int height) {
+            Screen* s = __nngui_findScreen(w);
+            if (s)
+            {
+                s->resizeCallbackEvent(width, height);
+            }
+        }
+    );
+
+    try
+    {
+        screen->setVisible(true);
+        //Event handler
+        while (!glfwWindowShouldClose(screen->window()))
+        {
+            float ratio;
+            ratio = size.x() / (float)size.y();
+            glViewport(0, 0, size.x(), size.y());
+            glClear(GL_COLOR_BUFFER_BIT);
+            glMatrixMode(GL_PROJECTION);
+            glLoadIdentity();
+            glOrtho(-ratio, ratio, -1.f, 1.f, 1.f, -1.f);
+            glMatrixMode(GL_MODELVIEW);
+            glLoadIdentity();
+            glRotatef((float) glfwGetTime() * 50.f, 0.f, 0.f, 1.f);
+            glBegin(GL_TRIANGLES);
+            glColor3f(1.f, 0.f, 0.f);
+            glVertex3f(-0.6f, -0.4f, 0.f);
+            glColor3f(0.f, 1.f, 0.f);
+            glVertex3f(0.6f, -0.4f, 0.f);
+            glColor3f(0.f, 0.f, 1.f);
+            glVertex3f(0.f, 0.6f, 0.f);
+            glEnd();
+
+            screen->drawAll();
+
+            glfwSwapBuffers(window);
+            glfwPollEvents();
+        }
+    }
+    catch (const std::runtime_error &e)
+    {
+        std::string error_msg = std::string("Caught a fatal error: ") + std::string(e.what());
+        #if defined(_WIN32)
+            MessageBoxA(nullptr, error_msg.c_str(), NULL, MB_ICONERROR | MB_OK);
+        #else
+            std::cerr << error_msg << endl;
+        #endif
+        return -1;
+    }
+
+    glfwDestroyWindow(window);
+    glfwTerminate();
 #endif
     return 0;    
 }

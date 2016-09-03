@@ -472,9 +472,9 @@ typedef char GLchar;
 typedef unsigned int GLenum;
 typedef ptrdiff_t GLsizeiptr;
 
+#ifdef WIN3
 typedef GLuint (APIENTRYP PFNGLCREATESHADERPROC)(GLenum type);
 PFNGLCREATESHADERPROC glCreateShader = nullptr;
-
 typedef void (APIENTRYP PFNGLGETSHADERINFOLOGPROC)(GLuint shader, GLsizei bufSize, GLsizei* length, GLchar* infoLog);
 PFNGLGETSHADERINFOLOGPROC glGetShaderInfoLog = nullptr;
 
@@ -552,6 +552,7 @@ PFNGLDISABLEVERTEXATTRIBARRAYPROC glDisableVertexAttribArray = nullptr;
 
 typedef void (APIENTRYP PFNGLDELETEBUFFERSPROC)(GLsizei n, const GLuint* buffers);
 PFNGLDELETEBUFFERSPROC glDeleteBuffers = nullptr;
+#endif
 
 #endif
 
@@ -3309,7 +3310,6 @@ static void __initGl(Screen::ParentWindowPtr window)
     glfwMakeContextCurrent(window);
 #ifdef WIN32
     ASSIGNGLFUNCTION(PFNGLACTIVETEXTUREPROC,glActiveTexture)
-#endif
     ASSIGNGLFUNCTION(PFNGLCREATESHADERPROC,glCreateShader)
     ASSIGNGLFUNCTION(PFNGLSHADERSOURCEPROC,glShaderSource)
     //ASSIGNGLFUNCTION(PFNGLUNIFORMMATRIX4FVPROC,glUniformMatrix4fv)
@@ -3362,6 +3362,7 @@ static void __initGl(Screen::ParentWindowPtr window)
     //ASSIGNGLFUNCTION(PFNGLBINDBUFFERRANGEPROC,glBindBufferRange)
     ASSIGNGLFUNCTION(PFNGLSTENCILOPSEPARATEPROC,glStencilOpSeparate)
     ASSIGNGLFUNCTION(PFNGLUNIFORM2FVPROC,glUniform2fv)
+#endif
 #endif
    }
 }
