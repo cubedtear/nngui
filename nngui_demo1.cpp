@@ -67,7 +67,7 @@ public:
           auto& tools = nwindow.add<Widget>().withLayout<BoxLayout>(Orientation::Horizontal,
                                                                     Alignment::Middle, 0, 6);
 
-          tools.add<ToolButton>(ENTYPO_ICON_CLOUD);
+          tools.add<ToolButton>().withIcon(ENTYPO_ICON_CLOUD);
           tools.add<ToolButton>(ENTYPO_ICON_FF);
           tools.add<ToolButton>(ENTYPO_ICON_COMPASS);
           tools.add<ToolButton>(ENTYPO_ICON_INSTALL);
@@ -97,11 +97,11 @@ public:
                                                        Alignment::Middle, 0, 6);
           tools.add<Button>("Info")
                 .withCallback([&] {
-              add<MessageDialog>(MessageDialog::Type::Information, "Title", "This is an information message")
+                    add<MessageDialog>(MessageDialog::Type::Information, "Title", "This is an information message")
                     .withCallback([](int result) { cout << "Dialog result: " << result << endl; });
             } );
           tools.add<Button>("Warn")
-                .withCallback([&]
+              .withCallback([&]
               {
                 add<MessageDialog>(MessageDialog::Type::Warning, "Title", "This is a warning message")
                       .withCallback([](int result) { cout << "Dialog result: " << result << endl; });
@@ -109,8 +109,8 @@ public:
           );
           tools.add<Button>("Ask")
                 .withCallback([&] {
-              add<MessageDialog>(MessageDialog::Type::Warning, "Title", "This is a question message", "Yes", "No", true)
-                    .withCallback([](int result) { cout << "Dialog result: " << result << endl; });
+                    add<MessageDialog>(MessageDialog::Type::Warning, "Title", "This is a question message", "Yes", "No", true)
+                     .withCallback([](int result) { cout << "Dialog result: " << result << endl; });
             });
 
           window.add<Label>("Image panel & scroll panel", "sans-bold");

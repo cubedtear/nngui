@@ -692,13 +692,13 @@ void Slider::draw(NVGcontext* ctx) {
         mTheme->mBorderLight);
 
     nvgBeginPath(ctx);
-    nvgCircle(ctx, knobPos.x(), knobPos.y(), kr);
+    nvgCircle(ctx, knobPos.x(), knobPos.y(), kr*mKnobRadiusKoeff.outter);
     nvgStrokeColor(ctx, mTheme->mBorderDark);
     nvgFillPaint(ctx, knob);
     nvgStroke(ctx);
     nvgFill(ctx);
     nvgBeginPath(ctx);
-    nvgCircle(ctx, knobPos.x(), knobPos.y(), kr/2);
+    nvgCircle(ctx, knobPos.x(), knobPos.y(), kr*mKnobRadiusKoeff.inner);
     nvgFillColor(ctx, Color(150, mEnabled ? 255 : 100));
     nvgStrokePaint(ctx, knobReverse);
     nvgStroke(ctx);
@@ -831,11 +831,14 @@ void Button::draw(NVGcontext *ctx) {
     nvgFillPaint(ctx, bg);
     nvgFill(ctx);
 
-    nvgBeginPath(ctx);
-    nvgRoundedRect(ctx, mPos.x() + 0.5f, mPos.y() + (mPushed ? 0.5f : 1.5f), mSize.x() - 1,
-                   mSize.y() - 1 - (mPushed ? 0.0f : 1.0f), mTheme->mButtonCornerRadius);
-    nvgStrokeColor(ctx, mTheme->mBorderLight);
-    nvgStroke(ctx);
+    if (mTheme->mButtonHaveLigthBorder)
+    {
+        nvgBeginPath(ctx);
+        nvgRoundedRect(ctx, mPos.x() + 0.5f, mPos.y() + (mPushed ? 0.5f : 1.5f), mSize.x() - 1,
+                       mSize.y() - 1 - (mPushed ? 0.0f : 1.0f), mTheme->mButtonCornerRadius);
+        nvgStrokeColor(ctx, mTheme->mBorderLight);
+        nvgStroke(ctx);
+    }
 
     nvgBeginPath(ctx);
     nvgRoundedRect(ctx, mPos.x() + 0.5f, mPos.y() + 0.5f, mSize.x() - 1,
@@ -2482,6 +2485,8 @@ Theme::Theme(NVGcontext *ctx) {
     mWindowHeaderHeight               = 30;
     mWindowDropShadowSize             = 10;
     mButtonCornerRadius               = 2;
+
+    mButtonHaveLigthBorder            = true;
 
     mDropShadow                       = Color(0, 128);
     mTransparent                      = Color(0, 0);

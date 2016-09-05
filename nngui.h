@@ -1055,6 +1055,9 @@ public:
     int mWindowDropShadowSize;
     int mButtonCornerRadius;
 
+    /* Generic options */
+    bool mButtonHaveLigthBorder;
+
     /* Generic colors */
     Color mDropShadow;
     Color mTransparent;
@@ -1441,8 +1444,17 @@ public:
     virtual bool mouseButtonEvent(const Vec2i &p, int button, bool down, int modifiers);
     virtual void draw(NVGcontext* ctx);
 
+    void setKnobInnerRadiusKoeff(float koeff) { mKnobRadiusKoeff.inner = koeff; }
+    void setKnobOutterRadiusKoeff(float koeff) { mKnobRadiusKoeff.outter = koeff; }
+
 protected:
     float mValue;
+
+    struct {
+        float inner=0.5f;
+        float outter=2.f;
+    } mKnobRadiusKoeff;
+
     std::function<void(float)> mCallback;
     std::function<void(float)> mFinalCallback;
     std::pair<float, float> mHighlightedRange;
@@ -2059,7 +2071,7 @@ protected:
 class ToolButton : public Button
 {
 public:
-    ToolButton(Widget *parent, int icon,
+    ToolButton(Widget *parent, int icon=-1,
            const std::string &caption = "")
         : Button(parent, caption, icon)
     {
