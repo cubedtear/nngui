@@ -68,7 +68,8 @@ public:
                                                                     Alignment::Middle, 0, 6);
 
           tools.add<ToolButton>().withIcon(ENTYPO_ICON_CLOUD);
-          tools.add<ToolButton>(ENTYPO_ICON_FF);
+          tools.add<ToolButton>().withIcon(ENTYPO_ICON_FF)
+                                 .withTooltip("Is a tooltip text");
           tools.add<ToolButton>(ENTYPO_ICON_COMPASS);
           tools.add<ToolButton>(ENTYPO_ICON_INSTALL);
 
@@ -81,6 +82,11 @@ public:
           PopupButton& rPopupBtn = pButton.popup()->add<PopupButton>("Recursive popup", ENTYPO_ICON_FLASH);
           rPopupBtn.popup()->withLayout<GroupLayout>();
           rPopupBtn.popup()->add<CheckBox>("Another check box");
+
+          nwindow.setContextCallback([](const Vec2i& p, Widget* w) {
+              ContextMenu& cm = w->add<ContextMenu>();
+              cm.setSize(Vec2i(200, 200));
+          });
         }
 
         std::vector<std::pair<int, std::string>>

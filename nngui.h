@@ -1108,6 +1108,8 @@ class Label;
 class Widget : public Object
 {
 public:
+    typedef std::function<void (const Vec2i& pos, Widget* parent)> ContextCallback;
+
     template<typename WidgetClass, typename... Args>
     WidgetClass& add( const Args&... args)
     {
@@ -1302,9 +1304,12 @@ public:
     /// Draw the widget (and all child widgets)
     virtual void draw(NVGcontext *ctx);
 
+    virtual void setContextCallback(const ContextCallback& function) { mContextCallback = function; }
+
     Widget& withPosition( const Vec2i& pos ) { setPosition( pos); return *this; }
     Widget& withFontSize(int size) { setFontSize(size); return *this; }
     Widget& withFixedSize(const Vec2i& size) { setFixedSize(size); return *this; }
+    Widget& withTooltip(const std::string& tooltip) { setTooltip(tooltip); return *this; }
 
     template<typename LayoutClass,typename... Args>
     Widget& withLayout( const Args&... args)
@@ -1330,6 +1335,7 @@ protected:
     std::string mTooltip;
     int mFontSize;
     Cursor mCursor;
+    ContextCallback mContextCallback;
 };
 
 class Window : public Widget {
@@ -1370,7 +1376,7 @@ public:
     /// Invoke the associated layout generator to properly place child widgets, if any
     virtual void performLayout(NVGcontext *ctx);
 protected:
-    /// Internal helper function to maintain nested window position values; overridden in \ref Popup
+    /// Internal helper  to maintain nested window position values; overridden in \ref Popup
     virtual void refreshRelativePlacement();
 protected:
     std::string mTitle;
@@ -1420,8 +1426,24 @@ protected:
     int mAnchorHeight;
 };
 
+class ContextMenu : public Window {
+public:
+    ContextMenu(Widget* parent);
+
+    /// Invoke the associated layout generator to properly place child widgets, if any
+    //virtual void performLayout(NVGcontext *ctx);
+
+    /// Draw the popup window
+    //virtual void draw(NVGcontext* ctx);
+
+protected:
+    /// Internal helper function to maintain nested window position values
+    //virtual void refreshRelativePlacement();
+};
+
 class Slider : public Widget {
 public:
+    typedef std::function<void(float)> Callback;
     Slider(Widget *parent);
 
     float value() const { return mValue; }
@@ -1433,11 +1455,11 @@ public:
     std::pair<float, float> highlightedRange() const { return mHighlightedRange; }
     void setHighlightedRange(std::pair<float, float> highlightedRange) { mHighlightedRange = highlightedRange; }
 
-    std::function<void(float)> callback() const { return mCallback; }
-    void setCallback(const std::function<void(float)> &callback) { mCallback = callback; }
+    Callback callback() const { return mCallback; }
+    void setCallback(const Callback& callback) { mCallback = callback; }
 
-    std::function<void(float)> finalCallback() const { return mFinalCallback; }
-    void setFinalCallback(const std::function<void(float)> &callback) { mFinalCallback = callback; }
+    Callback finalCallback() const { return mFinalCallback; }
+    void setFinalCallback(const Callback& callback) { mFinalCallback = callback; }
 
     virtual Vec2i preferredSize(NVGcontext *ctx) const;
     virtual bool mouseDragEvent(const Vec2i &p, const Vec2i &rel, int button, int modifiers);
@@ -1455,8 +1477,8 @@ protected:
         float outter=2.f;
     } mKnobRadiusKoeff;
 
-    std::function<void(float)> mCallback;
-    std::function<void(float)> mFinalCallback;
+    Callback mCallback;
+    Callback mFinalCallback;
     std::pair<float, float> mHighlightedRange;
     Color mHighlightColor;
 };

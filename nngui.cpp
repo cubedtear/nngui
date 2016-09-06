@@ -56,7 +56,8 @@
   #define SYSTEM_COMMAND_MOD GLFW_MOD_CONTROL
   #endif
 
-  #define MOUSE_BUTTON_LEFT GLFW_MOUSE_BUTTON_1
+  #define MOUSE_BUTTON_LEFT GLFW_MOUSE_BUTTON_LEFT
+  #define MOUSE_BUTTON_RIGHT GLFW_MOUSE_BUTTON_RIGHT
   #define MOUSE_BUTTON_PRESS GLFW_PRESS
   #define MOUSE_BUTTON_RELEASE GLFW_RELEASE
   #define KEYBOARD_KEY_DOWN GLFW_PRESS
@@ -620,6 +621,15 @@ void Popup::draw(NVGcontext* ctx) {
     nvgFill(ctx);
 
     Widget::draw(ctx);
+}
+
+/***************************** Context menu **************************************/
+
+
+ContextMenu::ContextMenu(Widget *parent)
+ : Window(parent)
+{
+
 }
 
 /***************************** Slider *********************************************/
@@ -1318,6 +1328,11 @@ bool Widget::mouseButtonEvent(const Vec2i &p, int button, bool down, int modifie
     }
     if (button == MOUSE_BUTTON_LEFT && down && !mFocused)
         requestFocus();
+    if (button == MOUSE_BUTTON_RIGHT && !down && mFocused)
+    {
+        if (mContextCallback)
+            mContextCallback(p, this);
+    }
     return false;
 }
 
