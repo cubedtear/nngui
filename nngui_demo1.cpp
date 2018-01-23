@@ -362,7 +362,7 @@ int main(int /* argc */, char ** /* argv */)
     SDL_GL_CreateContext(window);
 
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED );
-    TestWindow *screen = new TestWindow( window, winWidth, winHeight );
+    TestScreen *screen = new TestScreen( window, winWidth, winHeight);
 
     bool quit = false;
     try
